@@ -13,7 +13,7 @@ router.post("/allJobs", createNewJob);
 // Get all jobs
 router.get("/allJobs", getAllJobs);
 // Get jobs filtered
-router.get("/allJobs", filteredData); // ???????
+router.get("/allJobs", filteredData);
 // Update jobs data
 router.put("/allJobs/:id", updateJobData);
 // Delete job
