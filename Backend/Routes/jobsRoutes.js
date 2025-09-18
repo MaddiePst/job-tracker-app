@@ -2,20 +2,21 @@ import express from "express";
 import {
   filteredData,
   getAllJobs,
-  createNewJob,
+  addNewJob,
   updateJobData,
   deleteJob,
 } from "../Controllers/jobController.js";
+import { authMiddleware } from "../Middleware/middlewareUser.js";
 
 const router = express.Router();
 // Create new job
-router.post("/allJobs", createNewJob);
+router.post("/allJobs", addNewJob);
 // Get all jobs
-router.get("/allJobs", getAllJobs);
+router.get("/allJobs", authMiddleware, getAllJobs);
 // Get jobs filtered
 router.get("/allJobs", filteredData);
 // Update jobs data
-router.put("/allJobs/:id", updateJobData);
+router.put("/allJobs/:id", authMiddleware, updateJobData);
 // Delete job
 router.delete("/allJobs/:id", deleteJob);
 
