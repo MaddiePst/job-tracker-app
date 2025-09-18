@@ -1,0 +1,38 @@
+[
+  {
+    "id": "df31916b-572f-40cf-bfa2-41baf3f11398",
+    "title": "Frontend Developer",
+    "company": "TechCorp",
+    "location": "Remote",
+    "status": "Applied",
+    "date_applied": "2025-09-17T22:07:02.480Z",
+    "notes": ""
+  },
+  {
+    "id": "b05a1478-8910-4b82-92ab-cd9c97289419",
+    "title": "Frontend Developer",
+    "company": "TechCorp",
+    "location": "Remote",
+    "status": "Applied",
+    "date_applied": "2025-09-18T00:49:44.809Z",
+    "notes": ""
+  },
+  {
+    "id": "dbaba1e2-8a0c-4a56-a924-b021b10aa7a3",
+    "title": "Frontend Developer",
+    "company": "TechCorp",
+    "location": "Remote",
+    "status": "Applied",
+    "date_applied": "2025-09-18T00:51:21.289Z",
+    "notes": ""
+  },
+  {
+    "id": "5db05e28-fe1e-4456-8e75-a7986e96095c",
+    "title": "Frontend Developer",
+    "company": "TechCorp",
+    "location": "Remote",
+    "status": "Applied",
+    "date_applied": "2025-09-18T01:18:49.867Z",
+    "notes": ""
+  }
+]

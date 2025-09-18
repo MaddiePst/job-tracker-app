@@ -1,23 +1,26 @@
-import fs from "fs";
-// import path from "path";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// reads the data passed(name)
-function readJSON(name, defaultValue = []) {
-  const p = filePath(name);
-  if (!fs.existsSync(p)) {
-    fs.writeFileSync(p, JSON.stringify(defaultValue, null, 2));
-    return defaultValue;
-  }
-  const raw = fs.readFileSync(p, "utf8");
+const __filename = fileURLToPath(import.meta.url);
+const dataDir = path.dirname(__filename);
+
+// Read JSON file
+export async function readJSON(filename) {
+  const filePath = path.join(dataDir, filename);
+  console.log("readJSON filePath:", filePath);
   try {
-    return JSON.parse(raw || "[]");
+    const content = await fs.readFile(filePath, "utf8"); // await needed
+    return JSON.parse(content || "[]"); // parse JSON or return empty array
   } catch (err) {
-    fs.writeFileSync(p, JSON.stringify(defaultValue, null, 2));
-    return defaultValue;
+    if (err.code === "ENOENT") return []; // file doesn't exist
+    throw err;
   }
 }
-// writes the given data
-function writeJSON(name, data) {
-  const p = filePath(name);
-  fs.writeFileSync(p, JSON.stringify(data, null, 2), "utf8");
+
+// Write JSON file
+export async function writeJSON(filename, data) {
+  const filePath = path.join(dataDir, filename);
+  const text = JSON.stringify(data, null, 2);
+  await fs.writeFile(filePath, text, "utf8"); // await to finish writing
 }
