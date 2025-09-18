@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Alice Johnson",
+      "email": "alice@example.com",
+      "password": "password123",
+      "createdAt": "2025-09-10T18:00:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Brian Smith",
+      "email": "brian@example.com",
+      "password": "securepass456",
+      "createdAt": "2025-09-08T14:30:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Carla Davis",
+      "email": "carla@example.com",
+      "password": "qwerty789",
+      "createdAt": "2025-09-05T10:15:00Z"
+    }
+  ]
+}
