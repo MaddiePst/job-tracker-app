@@ -13,9 +13,10 @@ export function authMiddleware(req, res, next) {
   const token = auth.split(" ")[1];
   try {
     const payload = jwt.verify(token, SECRET);
-    req.user = { id: payload.id };
-    next();
+    req.user = { id: payload.id, email: payload.email };
+    return next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+    console.error("auth verify error:", err && err.message);
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
