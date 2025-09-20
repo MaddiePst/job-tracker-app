@@ -1,53 +1,72 @@
-import {v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { readJSON, writeJSON } from "./reusableFunc.js";
-import rawJobs from "../Data/myJobs.json" with {type: 'json'};
+// import data from "../Data/myJobs.json" with {type: 'json'};
 
-// all jobs routes
-let {jobs} = rawJobs;
-// console.log(jobs)
+/// Read data
+const rawData = await readJSON("myJobs.json"); // returns { jobs: [...] }
+const jobs = rawData.jobs || [];
+// console.log(jobs);
 
-// Create (POST) job
+// ******Create (POST) job*******
 export const addNewJob = async (req, res) => {
-  const {
-    id,
-    company,
-    title,
-    location,
-    status = "Applied",
-    date_applied = new Date().toISOString(),
-    link,
-    notes = "",
-  } = req.body;
-  if (!company || !title || !location)
-    return res.status(400).json({ message: "company, title and location are required" });
-  const jobs = await readJSON("jobs.json");
-  const job = {
-    id: uuidv4(),
-    title,
-    company,
-    location,
-    status,
-    date_applied,
-    link,
-    notes,
-  };
-  jobs.push(job);
-  await writeJSON("jobs.json", jobs);
-  return res.status(201).json(job);
+  try {
+    const {
+      company,
+      title,
+      location,
+      status = "Applied",
+      date_applied = new Date().toISOString(),
+      link,
+      notes = "",
+    } = req.body;
+
+    // Checking for all fields required to be completed
+    if (!company || !title || !location) {
+      return res
+        .status(400)
+        .json({ message: "company, title, and location are required" });
+    }
+
+    const job = {
+      id: uuidv4(),
+      company,
+      title,
+      location,
+      status,
+      date_applied,
+      link,
+      notes,
+    };
+
+    // Add new job to the array
+    jobs.push(job);
+
+    // Write back to the same structure
+    await writeJSON("myJobs.json", { jobs });
+
+    return res.status(201).json(job);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
 };
 
-//Read (GET) job
+//**********Read (GET) job**********
 // Get all jobs
 export const getAllJobs = async (req, res) => {
-  // only return jobs belonging to the authenticated user
-  let myJobs = jobs.filter((j) => j.userId === req.user.id);
-  return res.json(myJobs);
+  try {
+    // Filter jobs by authenticated user if needed
+    const myJobs = jobs.filter((j) => j.userId === req.user.id);
+
+    return res.json(myJobs);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
 };
 
 // Filter jobs data
 export const filteredData = async (req, res) => {
-
-
   // allJobs not defines=d
   let filteredData = jobs;
   console.log("Query: ", req.query);
@@ -79,83 +98,65 @@ export const filteredData = async (req, res) => {
   res.json(filteredData);
 };
 
-//Update job data
+//******Update job data*******
 export const updateJobData = async (req, res) => {
   try {
     const jobId = req.params.id;
-    if (!jobId) return res.status(400).json({ message: "Missing id in params" });
+    if (!jobId)
+      return res.status(400).json({ message: "Missing id in params" });
 
-    // ensure req.body is an object
-    const body = req.body || {};
+    const idx = jobs.findIndex((j) => String(j.id) === String(jobId));
+    if (idx === -1) return res.status(404).json({ message: "Job not found" });
 
-    const jobs = await readJSON("jobs.json");
-    const index = jobs.findIndex(j => String(j?.id) === String(jobId));
-    if (index === -1) {
-      const availableIds = jobs.slice(0,10).map(j => ({ id: j.id, title: j.title }));
-      return res.status(404).json({ message: "Job not found", availableIds });
-    }
+    // Update allowed fields
+    const allowedFields = [
+      "company",
+      "title",
+      "location",
+      "status",
+      "date_applied",
+      "link",
+      "notes",
+    ];
+    const updates = req.body;
+    let updated = false;
 
-    // Apply allowed updates safely using `body`
-    const allowed = ["company","title","location","status","date_applied","link","notes"];
-    let updated = { ...jobs[index] };
-    let applied = false;
-    for (const key of allowed) {
-      // safe check: don't call hasOwnProperty on undefined
-      if (Object.prototype.hasOwnProperty.call(body, key)) {
-        updated[key] = body[key];
-        applied = true;
+    allowedFields.forEach((field) => {
+      if (updates[field] !== undefined) {
+        jobs[idx][field] = updates[field];
+        updated = true;
       }
-    }
-    if (!applied) {
+    });
+
+    if (!updated)
       return res.status(400).json({ message: "No valid fields to update" });
-    }
 
-    jobs[index] = updated;
-    await writeJSON("jobs.json", jobs);
-    return res.json(updated);
+    await writeJSON("myJobs.json", { jobs });
 
+    return res.json({ message: "Job updated", job: jobs[idx] });
   } catch (err) {
-    console.error("updateJobById error:", err);
-    return res.status(500).json({ message: err.message || "Internal Server Error" });
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
-
-// Delete job
-export const deleteJob = async(req, res) => {
+// **********Delete job*******
+export const deleteJob = async (req, res) => {
   try {
-    // require id in route param or accept from body as fallback
-    const jobId = req.params.id || req.body?.id;
-    if (!jobId) return res.status(400).json({ message: "Missing id in params or body" });
+    const jobId = req.params.id;
+    if (!jobId)
+      return res.status(400).json({ message: "Missing id in params" });
 
-    // read file inside handler (no top-level 'jobs' variable)
-    const jobs = await readJSON("jobs.json"); // <- pass filename string
-    if (!Array.isArray(jobs)) {
-      return res.status(500).json({ message: "Jobs data is corrupted" });
-    }
+    const idx = jobs.findIndex((j) => String(j.id) === String(jobId));
+    if (idx === -1) return res.status(404).json({ message: "Job not found" });
 
-    const index = jobs.findIndex(j => String(j?.id) === String(jobId));
-    if (index === -1) {
-      const availableIds = jobs.slice(0,10).map(j => ({ id: j.id, title: j.title }));
-      return res.status(404).json({
-        message: "Job not found",
-        hint: "Use one of the available IDs to test the DELETE",
-        availableIds
-      });
-    }
+    jobs.splice(idx, 1);
 
-    // Optional ownership check (uncomment if you use req.user)
-    // if (jobs[index].userId && String(jobs[index].userId) !== String(req.user?.id)) {
-    //   return res.status(403).json({ message: "Forbidden: not your job" });
-    // }
+    await writeJSON("myJobs.json", { jobs });
 
-    // remove job and save
-    const [deleted] = jobs.splice(index, 1);
-    await writeJSON("jobs.json", jobs);
-
-    return res.json({ message: "Job deleted", deleted });
+    return res.json({ message: "Job deleted" });
   } catch (err) {
-    console.error("deleteJobById error:", err);
-    return res.status(500).json({ message: err.message || "Internal Server Error" });
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
