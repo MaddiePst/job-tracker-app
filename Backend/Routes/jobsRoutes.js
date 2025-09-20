@@ -8,6 +8,8 @@ import {
 } from "../Controllers/jobController.js";
 import { authMiddleware } from "../Middleware/middlewareUser.js";
 
+// ??????????? Do I need authentification??????????? to all the routes
+
 const router = express.Router();
 // Create new job
 router.post("/allJobs", addNewJob);

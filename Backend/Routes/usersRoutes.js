@@ -3,7 +3,6 @@ import {
   createNewUser,
   deleteUser,
   logInUser,
-  profileUser,
   updateUserData,
 } from "../Controllers/userController.js";
 import { authMiddleware } from "../Middleware/middlewareUser.js";
@@ -18,6 +17,4 @@ router.get("/logIn", logInUser);
 router.put("/updateUser/:id", authMiddleware, updateUserData);
 // Delete User
 router.delete("/deleteUser/:id", deleteUser);
-//Get my profile
-router.get("/profileUser", authMiddleware, profileUser);
 export default router;
