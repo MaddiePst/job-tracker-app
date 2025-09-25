@@ -12,7 +12,9 @@ const router = express.Router();
 //Create new user
 router.post("/createUser", createNewUser);
 //Log in user
-router.get("/logIn", logInUser);
+router.post("/logIn", logInUser);
+// router.get("/logIn", logInUser);
+router.get("/dashboard", logInUser);
 // Update User Data
 router.put("/updateUser/:id", authMiddleware, updateUserData);
 // Delete User
