@@ -7,9 +7,13 @@ const rawData = await readJSON("myJobs.json"); // returns { jobs: [...] }
 const jobs = rawData.jobs || [];
 // console.log(jobs);
 
-// ******Create (POST) job*******
 export const addNewJob = async (req, res) => {
   try {
+    // ensure auth middleware ran and attached req.user
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const {
       company,
       title,
@@ -18,17 +22,22 @@ export const addNewJob = async (req, res) => {
       date_applied = new Date().toISOString(),
       link,
       notes = "",
-    } = req.body;
+    } = req.body || {};
 
-    // Checking for all fields required to be completed
     if (!company || !title || !location) {
       return res
         .status(400)
         .json({ message: "company, title, and location are required" });
     }
 
+    // Read the current file. NOTE: myJobs.json is expected to be: { "jobs": [ ... ] }
+    const data = await readJSON("myJobs.json");
+    // normalize to ensure we have an array
+    const jobs = Array.isArray(data?.jobs) ? data.jobs : [];
+
     const job = {
       id: uuidv4(),
+      userId: String(req.user.id),
       company,
       title,
       location,
@@ -38,15 +47,14 @@ export const addNewJob = async (req, res) => {
       notes,
     };
 
-    // Add new job to the array
     jobs.push(job);
 
-    // Write back to the same structure
+    // write back preserving the { jobs: [...] } shape
     await writeJSON("myJobs.json", { jobs });
 
     return res.status(201).json(job);
   } catch (err) {
-    console.error(err);
+    console.error("addNewJob error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -56,8 +64,13 @@ export const addNewJob = async (req, res) => {
 export const getAllJobs = async (req, res) => {
   try {
     // Filter jobs by authenticated user if needed
-    const myJobs = jobs.filter((j) => j.userId === req.user.id);
+    const myJobs = jobs.filter((j) => {
+      console.log("j.userId", j.userId);
+      console.log("req.user.id", req.user.id);
 
+      return j.userId === req.user.id;
+    });
+    console.log("My jobs: ", myJobs);
     return res.json(myJobs);
   } catch (err) {
     console.error(err);
@@ -102,9 +115,11 @@ export const filteredData = async (req, res) => {
 export const updateJobData = async (req, res) => {
   try {
     const jobId = req.params.id;
+    // Checking if id exists
     if (!jobId)
       return res.status(400).json({ message: "Missing id in params" });
 
+    // Find the job id if it exists
     const idx = jobs.findIndex((j) => String(j.id) === String(jobId));
     if (idx === -1) return res.status(404).json({ message: "Job not found" });
 
@@ -128,6 +143,7 @@ export const updateJobData = async (req, res) => {
       }
     });
 
+    // No updates case
     if (!updated)
       return res.status(400).json({ message: "No valid fields to update" });
 
@@ -144,14 +160,15 @@ export const updateJobData = async (req, res) => {
 export const deleteJob = async (req, res) => {
   try {
     const jobId = req.params.id;
+    // Checking if id exists
     if (!jobId)
       return res.status(400).json({ message: "Missing id in params" });
 
+    // Find the job id if it exists
     const idx = jobs.findIndex((j) => String(j.id) === String(jobId));
     if (idx === -1) return res.status(404).json({ message: "Job not found" });
 
     jobs.splice(idx, 1);
-
     await writeJSON("myJobs.json", { jobs });
 
     return res.json({ message: "Job deleted" });
