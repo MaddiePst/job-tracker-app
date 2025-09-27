@@ -1,4 +1,4 @@
-// src/pages/Dashboard.jsx
+// // src/pages/Dashboard.jsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../utils/api";
@@ -38,7 +38,6 @@ export default function Dashboard() {
             err?.response?.status,
             err?.response?.data
           );
-          // fallthrough to try explicit header
         }
 
         // 3) Try fetching manually with axios and explicit Authorization header
@@ -72,7 +71,7 @@ export default function Dashboard() {
         console.error("Failed to load jobs:", err);
         if (err.response && err.response.status === 401) {
           localStorage.removeItem("token");
-          navigate("/login");
+          navigate("/jobs/login");
         } else {
           alert("Failed to load jobs (see console for debug info)");
         }

@@ -4,24 +4,30 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import api from "../utils/api";
 
 export default function JobForm() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const params = useParams();
+  //re-direct the user
+  const navigate = useNavigate(); //returns a navigate function to programmatically change route
+  //get the current location object; useful to read location.state (data passed from previous route).
+  const location = useLocation(); //gives the current location object (including location.state if you navigated with state
+  //object of route params;
+  const params = useParams(); //reads dynamic route params (e.g., :id from /jobs/edit/:id)
   const editing = Boolean(params.id);
+  //read job from location.state if present
   const passedJob = location.state?.job || null;
 
-  // form state
+  //State
   const [company, setCompany] = useState(passedJob?.company || "");
   const [title, setTitle] = useState(passedJob?.title || "");
   const [locationStr, setLocationStr] = useState(passedJob?.location || "");
-  const [status, setStatus] = useState(passedJob?.status || "Applied");
+  const [status, setStatus] = useState(passedJob?.status || "Applied"); //If a job was passed in (editing), the field initializes with that job’s value.
   const [notes, setNotes] = useState(passedJob?.notes || "");
   const [saving, setSaving] = useState(false);
 
   // If we're editing but no job was passed via state, fetch single job (optional)
   useEffect(() => {
+    // A flag to avoid setting state after the component unmounts (prevents memory leaks / warnings).
     let mounted = true;
     async function fetchJobIfNeeded() {
+      // Only fetch when editing
       if (editing && !passedJob) {
         try {
           const res = await api.get("/jobs/allJobs"); // get all and find one (backend doesn't expose single GET)
