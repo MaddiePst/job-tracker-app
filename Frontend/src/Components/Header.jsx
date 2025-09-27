@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { isLoggedIn, logout } from "../utils/auth";
 
+// Header
 export default function Header() {
   const navigate = useNavigate();
   const logged = isLoggedIn();
