@@ -13,8 +13,8 @@ import { isLoggedIn } from "./utils/auth.js";
 export default function App() {
   return (
     <>
-      {isLoggedIn() && <Header />} //I need to add more here
-      <main className="container">
+      {isLoggedIn() && <Header />}
+      <main>
         <Routes>
           <Route path="/" element={<Navigate to="/logIn" />} />
           <Route path="/logIn" element={<Login />} />
