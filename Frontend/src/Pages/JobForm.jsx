@@ -4,33 +4,25 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import api from "../utils/api";
 
 export default function JobForm() {
-  //re-direct the user
-  const navigate = useNavigate(); //returns a navigate function to programmatically change route
-  //get the current location object; useful to read location.state (data passed from previous route).
-  const location = useLocation(); //gives the current location object (including location.state if you navigated with state
-  //object of route params;
-  const params = useParams(); //reads dynamic route params (e.g., :id from /jobs/edit/:id)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
   const editing = Boolean(params.id);
-  //read job from location.state if present
   const passedJob = location.state?.job || null;
 
-  //State
   const [company, setCompany] = useState(passedJob?.company || "");
   const [title, setTitle] = useState(passedJob?.title || "");
   const [locationStr, setLocationStr] = useState(passedJob?.location || "");
-  const [status, setStatus] = useState(passedJob?.status || "Applied"); //If a job was passed in (editing), the field initializes with that job’s value.
+  const [status, setStatus] = useState(passedJob?.status || "Applied");
   const [notes, setNotes] = useState(passedJob?.notes || "");
   const [saving, setSaving] = useState(false);
 
-  // If we're editing but no job was passed via state, fetch single job (optional)
   useEffect(() => {
-    // A flag to avoid setting state after the component unmounts (prevents memory leaks / warnings).
     let mounted = true;
     async function fetchJobIfNeeded() {
-      // Only fetch when editing
       if (editing && !passedJob) {
         try {
-          const res = await api.get("/jobs/allJobs"); // get all and find one (backend doesn't expose single GET)
+          const res = await api.get("/jobs/allJobs");
           if (!mounted) return;
           const job = res.data.find((j) => String(j.id) === String(params.id));
           if (!job) {
@@ -61,7 +53,6 @@ export default function JobForm() {
     setSaving(true);
     try {
       if (editing) {
-        // update existing job
         await api.put(`/jobs/allJobs/${params.id}`, {
           company,
           title,
@@ -69,10 +60,8 @@ export default function JobForm() {
           status,
           notes,
         });
-        // After edit, navigate back to dashboard (you can also pass state if you want)
         navigate("/dashboard?refresh=" + Date.now());
       } else {
-        // create new job
         const res = await api.post("/jobs/allJobs", {
           company,
           title,
@@ -80,7 +69,6 @@ export default function JobForm() {
           status,
           notes,
         });
-        // Force dashboard to re-fetch by adding a unique query param
         navigate("/dashboard?refresh=" + Date.now());
       }
     } catch (err) {
@@ -92,66 +80,91 @@ export default function JobForm() {
   };
 
   return (
-    <div className="container">
-      <h2>{editing ? "Edit Job" : "Add Job"}</h2>
-      <form onSubmit={handleSubmit} className="job-form">
-        <label>
-          Company
-          <input
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          Title
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          Location
-          <input
-            value={locationStr}
-            onChange={(e) => setLocationStr(e.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          Status
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option>Applied</option>
-            <option>Interviewing</option>
-            <option>Offer</option>
-            <option>Rejected</option>
-          </select>
-        </label>
-
-        <label>
-          Notes
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
-        </label>
-
-        <div style={{ marginTop: 12 }}>
-          <button className="btn" type="submit" disabled={saving}>
-            {saving ? "Saving..." : editing ? "Save Changes" : "Create Job"}
-          </button>
-          <button
-            type="button"
-            className="btn"
-            style={{ marginLeft: 8 }}
-            onClick={() => navigate(-1)}
-            disabled={saving}
-          >
+    <div className="app-container py-8">
+      <div className="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow-card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">
+            {editing ? "Edit Job" : "Add Job"}
+          </h2>
+          <button className="text-sm" onClick={() => navigate(-1)}>
             Cancel
           </button>
         </div>
-      </form>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm text-muted">Company</label>
+            <input
+              className="mt-1 block w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-muted">Title</label>
+            <input
+              className="mt-1 block w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-muted">Location</label>
+            <input
+              className="mt-1 block w-full border border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+              value={locationStr}
+              onChange={(e) => setLocationStr(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-muted">Status</label>
+            <select
+              className="mt-1 block w-full border border-gray-400 rounded-md px-3 py-2 "
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option>Applied</option>
+              <option>Interviewing</option>
+              <option>Offer</option>
+              <option>Rejected</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm text-muted">Notes</label>
+            <textarea
+              className="mt-1 block w-full border border-gray-400 rounded-md px-3 py-2 h-28 focus:outline-none focus:ring-2 focus:ring-green-600"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              type="submit"
+              disabled={saving}
+              className="inline-flex items-center px-4 py-2 bg-green-900 text-white xl:bg-gray-300 border xl:text-black rounded-md hover:bg-green-900 hover:text-white disabled:opacity-60"
+            >
+              {saving ? "Saving..." : editing ? "Save Changes" : "Create Job"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              disabled={saving}
+              className="px-4 py-2 border rounded-md bg-gray-200 xl:bg-white hover:xl:bg-gray-200"
+            >
+              Back
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
